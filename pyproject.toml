@@ -1,0 +1,18 @@
+[project]
+name = "mcp-test"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.12",
+    "fastmcp>=2.3.3",
+    "gradio>=5.29.0",
+    "openai>=1.78.1",
+    "requests>=2.32.3",
+]
+
+[tool.uv.workspace]
+members = [
+    "python3.12",
+]
