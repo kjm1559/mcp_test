@@ -6,6 +6,7 @@ import asyncio
 from fastmcp import Client
 from src.utils import llm_streaming_call, get_client, get_all_function_tools, tool_to_openai
 from src.prompt import base_prompt, tool_call_prompt
+import time
 
 import logging
 logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s',datefmt = '%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
@@ -21,8 +22,10 @@ async def chat_by_tools(message, chat_history):
     async with Client("http://localhost:8000/mcp") as client_mcp:
         function_name, function_id = '', ''
         tool_body = ''
+        st_time = time.time()
         tools = await client_mcp.list_tools()
         tool_list_mcp = await get_all_function_tools([client_mcp], True)
+        logger.info(f'hand shaking : {time.time() - st_time}')
 
         tools = [tool_to_openai(tool) for tool in tool_list_mcp]
         
@@ -47,7 +50,6 @@ async def chat_by_tools(message, chat_history):
                 logger.info(f'[tool] {function_name}, {function_id}, {tool_call}')
                 tool_result = ''
                 for t in tool_list_mcp:
-                    logger.info(f'tototot {t.name}')
                     if t.name == function_name:
                         tool_result = await t.on_invoke_tool(json.dumps(tool_call))
                         logger.info(f'tool result: {t.name}, {tool_result}')
@@ -69,7 +71,7 @@ def text_clean():
 
 with gr.Blocks() as demo:
     chat_history_with_tool = gr.State([])
-    chat = gr.Chatbot(type="messages",)
+    chat = gr.Chatbot(type="messages")
     textbox = gr.Textbox(placeholder='Type a message...', show_label=False, interactive=True, submit_btn=True)
     textbox.submit(chat_by_tools, inputs=[textbox, chat_history_with_tool], outputs=[chat, chat_history_with_tool]).then(text_clean, outputs=[textbox])
 
